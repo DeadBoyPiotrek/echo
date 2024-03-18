@@ -1,13 +1,28 @@
+'use client';
 import { Awake } from '../../components/awake';
-import { transcription } from '../../lib/speechToText';
+import Mic from '../../components/mic';
 export default function Home() {
-  console.log('app');
+  const transcribe = async () => {
+    await fetch('/api/speechToText');
+  };
+
+  const textToSpeech = async () => {
+    await fetch('/api/textToSpeech');
+  };
+
   return (
-    <main>
-      <h1>Echo</h1>
-      <Awake />
-      <button>Transcribe</button>
-      <button onClick={transcription}>Transcribe</button>
+    <main className="border p-3 flex flex-col gap-3">
+      <h1 className="text-4xl">ECHO</h1>
+
+      <Mic />
+
+      {/* <Awake /> */}
+      {/* <button className="border p-3" onClick={transcribe}>
+        speech to text
+      </button>
+      <button className="border p-3" onClick={textToSpeech}>
+        text to speech
+      </button> */}
     </main>
   );
 }

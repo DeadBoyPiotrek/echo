@@ -3,7 +3,8 @@ import { useEffect } from 'react';
 import { usePorcupine } from '@picovoice/porcupine-react';
 
 export const Awake = () => {
-  const porcupineKey = process.env.NEXT_PORCUPINE_API_KEY;
+  const porcupineKey = process.env.NEXT_PUBLIC_PORCUPINE_API_KEY;
+
   const { keywordDetection, isLoaded, isListening, error, init, start, stop } =
     usePorcupine();
 
@@ -26,10 +27,9 @@ export const Awake = () => {
       console.log('Keyword detected:', keywordDetection.label);
     }
   }, [keywordDetection]);
-  console.log('app');
+
   return (
-    <div>
-      <h1 className="font-bold">Welcome echo !</h1>
+    <div className="border flex flex-col p-3">
       <div>{isListening ? 'Listening...' : 'Not listening'}</div>
       <button onClick={start} disabled={!isLoaded || isListening}>
         Start
