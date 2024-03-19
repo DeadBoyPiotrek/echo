@@ -1,65 +1,57 @@
-import { useState, useEffect } from 'react';
+const useMicrophone = () => {
+  const audioChunks: Blob[] = [];
+  let mediaRecorder: MediaRecorder | null = null;
 
-type MicrophoneState = {
-  isSupported: boolean;
-  isRecording: boolean;
-  stream: MediaStream | null;
-  startRecording: () => void;
-  stopRecording: () => void;
-  error: string | null;
-};
+  // set media recorder
+  const setup = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+    });
+    mediaRecorder = new MediaRecorder(stream);
 
-const useMicrophone = (): MicrophoneState => {
-  const [isSupported, setIsSupported] = useState<boolean>(true);
-  const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [stream, setStream] = useState<MediaStream | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setIsSupported(false);
-      setError('getUserMedia is not supported in this browser');
-      return;
+    // set media recorder event listeners
+    if (mediaRecorder) {
+      console.log('getting data...');
+      mediaRecorder.ondataavailable = event => {
+        audioChunks.push(event.data);
+      };
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, {
+          type: 'audio/wav',
+        });
+        console.log(audioBlob);
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audio.play();
+      };
     }
-  }, []);
+    console.log('media recorder set');
+  };
+  setup();
 
   const startRecording = () => {
-    setIsRecording(true);
-    const getMicrophone = async () => {
-      try {
-        const microphoneStream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
-        setStream(microphoneStream);
-      } catch (err: any) {
-        setError('Error accessing microphone: ' + err.message);
-      }
-    };
-
-    getMicrophone();
-
-    return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-    };
+    console.log('start recording');
+    if (mediaRecorder) {
+      mediaRecorder.start();
+    }
   };
 
   const stopRecording = () => {
-    setIsRecording(false);
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+    console.log('stop recording');
+    if (mediaRecorder) {
+      mediaRecorder.stop();
     }
   };
 
+  console.log(mediaRecorder?.state);
+
   return {
-    isSupported,
-    isRecording,
-    stream,
     startRecording,
     stopRecording,
-    error,
+    status: mediaRecorder?.state,
   };
 };
 
 export default useMicrophone;
+
+//TODO: update status on status change
