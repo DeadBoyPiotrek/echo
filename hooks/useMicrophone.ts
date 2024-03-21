@@ -5,8 +5,23 @@ const useMicrophone = () => {
     null
   );
   const [status, setStatus] = useState<string | null>(null);
-  // const audioChunks: Blob[] = [];
-  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+  const [audioChunks, setAudioChunks] = useState<BlobPart[]>([]);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+
+  useEffect(() => {
+    if (audioChunks.length > 0) {
+      const audioBlob = new Blob(audioChunks, {
+        type: 'audio/wav',
+      });
+      setAudioBlob(audioBlob);
+
+      console.log(`🚀 ~ audioBlob:`, audioBlob);
+      const audioUrl = URL.createObjectURL(audioBlob);
+
+      const audio = new Audio(audioUrl);
+      audio.play();
+    }
+  }, [audioChunks]);
 
   useEffect(() => {
     const setup = async () => {
@@ -20,20 +35,12 @@ const useMicrophone = () => {
 
         // set media recorder event listeners
         recorder.ondataavailable = event => {
-          // audioChunks.push(event.data);
           setAudioChunks([...audioChunks, event.data]);
         };
 
         recorder.onstop = () => {
-          const audioBlob = new Blob(audioChunks, {
-            type: 'audio/wav',
-          });
-
-          console.log(`🚀 ~ setup ~ audioBlob:`, audioBlob);
-          const audioUrl = URL.createObjectURL(audioBlob);
-
-          const audio = new Audio(audioUrl);
-          audio.play();
+          // no need to create audioBlob here; it will be handled by the useEffect above
+          setStatus(recorder.state);
         };
 
         setStatus(recorder.state);
@@ -60,13 +67,11 @@ const useMicrophone = () => {
     }
   };
 
-  console.log(`🚀 ~ audioChunks:`, audioChunks);
-
   return {
     startRecording,
     stopRecording,
     status,
-    blob: audioChunks[0],
+    audioBlob,
   };
 };
 
