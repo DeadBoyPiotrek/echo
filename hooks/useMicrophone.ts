@@ -39,7 +39,6 @@ const useMicrophone = () => {
         };
 
         recorder.onstop = () => {
-          // no need to create audioBlob here; it will be handled by the useEffect above
           setStatus(recorder.state);
         };
 

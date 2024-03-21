@@ -19,7 +19,7 @@ const Mic: React.FC = () => {
       <p>Microphone status: {status}</p>
       <button onClick={startRecording}>Start Recording</button>
       <button onClick={stopRecording}>Stop Recording</button>
-      <button onClick={sendData}>Send Data</button>
+      {/* <button onClick={sendData}>Send Data</button> */}
     </div>
   );
 };
