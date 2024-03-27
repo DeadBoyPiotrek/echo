@@ -25,6 +25,7 @@ export const Awake = () => {
   useEffect(() => {
     if (keywordDetection !== null) {
       console.log('Keyword detected:', keywordDetection.label);
+      // record audio
     }
   }, [keywordDetection]);
 
