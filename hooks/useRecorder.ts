@@ -7,38 +7,28 @@ export const useRecorder = () => {
   const wavesurferRef = useRef<Wavesurfer | null>(null);
   const recordRef = useRef<RecordPlugin | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [isSilent, setIsSilent] = useState(false);
   useEffect(() => {
-    if (waveformRef.current) {
-      wavesurferRef.current = Wavesurfer.create({
-        container: waveformRef.current,
-        width: 400,
-        waveColor: 'white',
-        height: 100,
-        barGap: 10,
-        barWidth: 5,
-        barHeight: 2,
-        barRadius: 3,
-        audioRate: 1,
-      });
-    }
-    if (waveformRef.current && wavesurferRef.current) {
-      recordRef.current = wavesurferRef.current.registerPlugin(
-        RecordPlugin.create({})
-      );
-
-      recordRef.current.on('record-end', audioBlob => {
-        console.log(audioBlob);
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-        audio.play();
-      });
-      recordRef.current.on('record-start', async () => {
-        const mediaStream = await recordRef.current?.startMic();
-        mediaStream?.
-      });
-    }
-
+    const handleEffect = async () => {
+      if (waveformRef.current) {
+        wavesurferRef.current = Wavesurfer.create({
+          container: waveformRef.current,
+          width: 400,
+          waveColor: 'white',
+          height: 100,
+          barGap: 10,
+          barWidth: 5,
+          barHeight: 2,
+          barRadius: 3,
+          audioRate: 1,
+        });
+      }
+      if (waveformRef.current && wavesurferRef.current) {
+        recordRef.current = wavesurferRef.current.registerPlugin(
+          RecordPlugin.create({})
+        );
+      }
+    };
+    handleEffect();
     return () => {
       if (wavesurferRef.current) {
         wavesurferRef.current.destroy();
@@ -46,22 +36,30 @@ export const useRecorder = () => {
     };
   }, []);
 
-  const handleStartRecording = () => {
+  const startRecording = async () => {
     if (recordRef.current === null) return;
     recordRef.current.startRecording();
     setIsRecording(true);
   };
 
-  const handleStopRecording = () => {
+  const stopRecording = () => {
     if (recordRef.current === null) return;
     recordRef.current.stopRecording();
     setIsRecording(false);
   };
 
+  const loadAudio = (audioBlob: Blob) => {
+    if (wavesurferRef.current === null) return;
+    wavesurferRef.current.loadBlob(audioBlob);
+    wavesurferRef.current.play();
+  };
+
   return {
+    recordRef,
     waveformRef,
-    handleStartRecording,
-    handleStopRecording,
+    startRecording,
+    stopRecording,
     isRecording,
+    loadAudio,
   };
 };
