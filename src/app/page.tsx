@@ -93,6 +93,9 @@ export default function Home() {
       <p className="p-4 text-xl text-blue-400">
         {isRecording ? 'Recording...' : 'not recording'}
       </p>
+      <p className="p-4 text-xl text-blue-400">
+        {isListening ? 'Listening...' : 'not listening'}
+      </p>
       <button className="border p-2 rounded-md" onClick={startRecording}>
         Start Recording
       </button>
