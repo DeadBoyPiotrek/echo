@@ -1,4 +1,4 @@
-import OpenAI, { toFile } from 'openai';
+import OpenAI from 'openai';
 
 const key = process.env.OPENAI_API_KEY;
 const openai = new OpenAI({ apiKey: key });

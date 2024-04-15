@@ -1,7 +1,7 @@
 'use client';
 import { useEffect } from 'react';
-import { useAwake } from '../../hooks/useAwake';
-import { useRecorder } from '../../hooks/useRecorder';
+import { useAwake } from '@hooks/useAwake';
+import { useRecorder } from '@hooks/useRecorder';
 
 export default function Home() {
   const {
