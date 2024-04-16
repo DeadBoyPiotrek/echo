@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 export default function Test() {
   const [text, setText] = useState('');
-
+  const [response, setResponse] = useState('');
   const formSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
@@ -16,6 +16,7 @@ export default function Test() {
         body: JSON.stringify({ text }),
       });
       const data = await response.json();
+      setResponse(data.message);
     } catch (error) {
       console.error(error);
     }
@@ -31,6 +32,7 @@ export default function Test() {
           placeholder="Enter text here"
         />
         <button type="submit">Submit</button>
+        <div className="text-white">res:{response}</div>
       </form>
     </div>
   );
