@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       { role: 'system', content: 'You give very short answers' },
       { role: 'user', content: transcriptionText.text },
     ];
-    let inputText: string;
+    let inputText = '';
     const completion = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages,
@@ -57,7 +57,6 @@ export async function POST(request: Request) {
     const completionMessage = completion.choices[0].message;
     if (completionMessage.content) inputText = completionMessage.content;
     console.log(JSON.stringify(completionMessage, null, 2));
-
     const toolCalls = completionMessage.tool_calls;
     if (toolCalls) {
       const availableFunctions = {
@@ -66,6 +65,8 @@ export async function POST(request: Request) {
       messages.push(completionMessage);
       for (const toolCall of toolCalls) {
         const functionName = toolCall.function.name;
+        //TODO fix this
+        //@ts-ignore
         const functionToCall = availableFunctions[functionName];
         const functionArgs = JSON.parse(toolCall.function.arguments);
         const functionResponse = await functionToCall(functionArgs.location);

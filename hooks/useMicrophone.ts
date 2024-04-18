@@ -15,7 +15,6 @@ const useMicrophone = () => {
       });
       setAudioBlob(audioBlob);
 
-      console.log(`🚀 ~ audioBlob:`, audioBlob);
       const audioUrl = URL.createObjectURL(audioBlob);
 
       const audio = new Audio(audioUrl);

@@ -15,6 +15,7 @@ export default function Home() {
   const { error, isListening, keywordDetection, start, stop } = useAwake();
 
   useEffect(() => {
+    console.log('keywordDetection:', keywordDetection);
     const handleEffect = async () => {
       const mediaStream = await recordRef.current?.startMic();
       if (mediaStream && keywordDetection !== null) {
@@ -33,16 +34,25 @@ export default function Home() {
       });
 
       recordRef.current.on('record-end', async audioBlob => {
-        const data = new FormData();
-        data.append('blob', audioBlob, 'audio.wav');
+        const formData = new FormData();
+        formData.append('blob', audioBlob, 'audio.wav');
         try {
-          const response = await fetch('/api/speechToText', {
+          const response = await fetch('/api/askEcho', {
             method: 'POST',
-            body: data,
+            body: formData,
           });
-          console.log('response:', response);
-          const responseBlob = await response.blob();
-          loadAudio(responseBlob);
+          const data = await response.json();
+          console.log(`🚀 ~ useEffect ~ data:`, data);
+          const echoResponseBlobBase64 = data.audioBlobBase64;
+          const echoResponseBlob = new Blob(
+            [Buffer.from(echoResponseBlobBase64, 'base64')],
+            {
+              type: 'audio/mpeg',
+            }
+          );
+          const echoResponseText = data.text;
+
+          loadAudio(echoResponseBlob);
         } catch (error) {
           console.error('error:', error);
         }

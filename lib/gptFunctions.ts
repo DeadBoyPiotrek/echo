@@ -1,32 +1,3 @@
-// export const getCurrentWeather = async (city: string) => {
-//   const response = await fetch(
-//     `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${process.env.OPEN_WEATHER_API_KEY}`
-//   );
-
-//   const data = await response.json();
-
-//   return data;
-// };
-
-// export const getDailySummary = async (date: string) => {
-//   const key = process.env.RESCUE_TIME_API_KEY;
-//   const url = `https://www.rescuetime.com/anapi/daily_summary_feed?key=${key}&date=${date}`;
-//   console.log(`🚀 ~ getDailySummary ~ url:`, url);
-//   const response = await fetch(url);
-
-//   const data = await response.json();
-
-//   return data;
-// };
-
-// export const getTodaysDate = async () => {
-//   const date = new Date();
-//   const todaysDate = date.toISOString().split('T')[0];
-//   return todaysDate;
-// };
-
-// gptFunctions.ts
-
 export interface FunctionSpecification {
   name: string;
   description: string;
@@ -56,7 +27,6 @@ const getCurrentWeather: Function = async (city: string) => {
 const getDailySummary: Function = async (date: string) => {
   const key = process.env.RESCUE_TIME_API_KEY;
   const url = `https://www.rescuetime.com/anapi/daily_summary_feed?key=${key}&date=${date}`;
-  console.log(`🚀 ~ getDailySummary ~ url:`, url);
   const response = await fetch(url);
 
   const data = await response.json();
@@ -64,11 +34,10 @@ const getDailySummary: Function = async (date: string) => {
   return data;
 };
 
-const getTodaysDate: Function = async () => {
-  const date = new Date();
-  const todaysDate = date.toISOString().split('T')[0];
-  return todaysDate;
-};
+// const getTodaysDate: Function = async ()  => {
+//   const formattedDate = new Date().toISOString();
+//   return formattedDate;
+// };
 
 const availableFunctions: AvailableFunctions = {
   getCurrentWeather: {
@@ -106,13 +75,13 @@ const availableFunctions: AvailableFunctions = {
       },
     },
   },
-  getTodaysDate: {
-    function: getTodaysDate,
-    spec: {
-      name: 'getTodaysDate',
-      description: 'Get the todays date in this format: YYYY-MM-DD',
-    },
-  },
+  // getTodaysDate: {
+  //   function: getTodaysDate,
+  //   spec: {
+  //     name: 'getTodaysDate',
+  //     description: 'Get the todays date in this format: YYYY-MM-DD',
+  //   },
+  // },
 };
 
 export { availableFunctions };
