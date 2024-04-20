@@ -5,7 +5,12 @@ const key = process.env.OPENAI_API_KEY;
 const openai = new OpenAI({ apiKey: key });
 
 export async function POST(request: Request) {
+  let messages: OpenAI.ChatCompletionMessageParam[] = [];
+  const model: ChatCompletionCreateParamsBase['model'] = 'gpt-3.5-turbo';
+  const formattedDate = new Date().toISOString();
   try {
+    const startTime = performance.now();
+
     //* speech-to-text
     const data = await request.formData();
     const audioBlob = data.get('blob') as Blob;
@@ -15,17 +20,21 @@ export async function POST(request: Request) {
       model: 'whisper-1',
     });
     const text = transcriptionResponse.text;
-    //* completion
-    const formattedDate = new Date().toISOString();
-    const model: ChatCompletionCreateParamsBase['model'] = 'gpt-3.5-turbo';
-    const messages: OpenAI.ChatCompletionMessageParam[] = [
+    const speechToTextTime = performance.now();
+    console.log(
+      'Speech-to-text time:',
+      speechToTextTime - startTime,
+      'milliseconds'
+    );
+    messages = [
       {
         role: 'system',
-        content: `You're helpful, motivating and kind assistant, you give short straightforward answers, time now: ${formattedDate} 
-    `,
+        content: `You're helpful, motivating and kind assistant, you give short straightforward audio only answers, like a human to human, time now: ${formattedDate}`,
       },
       { role: 'user', content: text },
     ];
+
+    //* completion
     const tools = Object.values(availableFunctions).map(({ spec }) => ({
       type: 'function' as 'function',
       function: spec,
@@ -64,6 +73,13 @@ export async function POST(request: Request) {
 
       messages.push(secondCompletionMessage);
     }
+    const completionTime = performance.now();
+    console.log(
+      'Completion time:',
+      completionTime - speechToTextTime,
+      'milliseconds'
+    );
+
     const chatResponse = messages[messages.length - 1].content as string;
 
     //* text-to-speech
@@ -79,6 +95,16 @@ export async function POST(request: Request) {
       .arrayBuffer()
       .then(buffer => Buffer.from(buffer).toString('base64'));
 
+    const textToSpeechTime = performance.now();
+    console.log(
+      'Text-to-speech time:',
+      textToSpeechTime - completionTime,
+      'milliseconds'
+    );
+
+    const endTime = performance.now();
+    console.log('Total time:', endTime - startTime, 'milliseconds');
+
     console.log('messages', JSON.stringify(messages, null, 2));
     return new Response(
       JSON.stringify({ message: chatResponse, audioBlobBase64: blobBase64 }),
@@ -87,6 +113,7 @@ export async function POST(request: Request) {
       }
     );
   } catch (error) {
+    console.log('messages', JSON.stringify(messages, null, 2));
     console.error(error);
     return new Response(JSON.stringify({ message: 'Error' }), {
       headers: { 'Content-Type': 'application/json' },
