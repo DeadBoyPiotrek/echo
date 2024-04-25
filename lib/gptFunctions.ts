@@ -1,24 +1,10 @@
 import { Client } from '@notionhq/client';
 type Priority = 'High Priority' | 'Medium Priority' | 'Low Priority';
 import type { OpenAI } from 'openai';
-// export interface FunctionSpecification {
-//   name: string;
-//   description: string;
-//   parameters?: {
-//     type: string;
-//     properties: Record<string, { type: string; description: string }>;
-//     required: string[];
-//   };
-// }
-
-interface Tool extends OpenAI.Chat.ChatCompletionTool {
-  functionToCall: Function;
-}
-
-interface AvailableFunction {
+interface AvailableFunctions {
   [key: string]: {
-    function: Function;
-    spec: Tool;
+    functionToCall: Function;
+    tool: OpenAI.Chat.ChatCompletionTool;
   };
 }
 
@@ -121,77 +107,87 @@ const getTodoList = async () => {
   }
 };
 
-const availableFunctions: AvailableFunction[] = {
+const availableFunctions: AvailableFunctions = {
   getCurrentWeather: {
     functionToCall: getCurrentWeather,
-    type: 'function',
-    function: {
-      name: 'getCurrentWeather',
-
-      description: 'Get the current weather in a city',
-      parameters: {
-        type: 'object',
-        properties: {
-          location: {
-            type: 'string',
-            description: 'The city to get the weather for',
+    tool: {
+      type: 'function',
+      function: {
+        name: 'getCurrentWeather',
+        description: 'Get the current weather in a city',
+        parameters: {
+          type: 'object',
+          properties: {
+            location: {
+              type: 'string',
+              description: 'The city to get the weather for',
+            },
           },
+          required: ['location'],
         },
-        required: ['location'],
       },
     },
   },
   getDailySummary: {
     functionToCall: getDailySummary,
-    function: {
-      name: 'getDailySummary',
-      description: 'Get the daily summary of my activities',
-      parameters: {
-        type: 'object',
-        properties: {
-          date: {
-            type: 'string',
-            description:
-              '(make sure the date is right!) date in this format: YYYY-MM-DD',
+    tool: {
+      type: 'function',
+      function: {
+        name: 'getDailySummary',
+
+        description: 'Get the daily summary of my activities',
+        parameters: {
+          type: 'object',
+          properties: {
+            date: {
+              type: 'string',
+              description:
+                '(make sure the date is right!) date in this format: YYYY-MM-DD',
+            },
           },
+          required: ['date'],
         },
-        required: ['date'],
       },
     },
   },
   addTodo: {
     functionToCall: addTodo,
-    function: {
-      name: 'addTodo',
-      description: 'Add a todo to my Notion database',
-      parameters: {
-        type: 'object',
-        properties: {
-          todoContent: {
-            type: 'string',
-            description: 'The content of the todo',
+    tool: {
+      type: 'function',
+      function: {
+        name: 'addTodo',
+        description: 'Add a todo to my Notion database',
+        parameters: {
+          type: 'object',
+          properties: {
+            todoContent: {
+              type: 'string',
+              description: 'The content of the todo',
+            },
+            date: {
+              type: 'string',
+              description:
+                'The date to complete the todo if not provided it will be set to today',
+            },
+            priority: {
+              type: 'string',
+              description:
+                'The priority of the todo must be exactly one of: High Priority, Medium Priority, Low Priority if not provided it will be set to No Priority',
+            },
           },
-          date: {
-            type: 'string',
-            description:
-              'The date to complete the todo if not provided it will be set to today',
-          },
-          priority: {
-            type: 'string',
-            enum: ['High Priority', 'Medium Priority', 'Low Priority'],
-            description:
-              'The priority of the todo must be exactly one of: High Priority, Medium Priority, Low Priority if not provided it will be set to No Priority',
-          },
+          required: ['todoContent', 'date', 'priority'],
         },
-        required: ['todoContent', 'date', 'priority'],
       },
     },
   },
   getTodoList: {
     functionToCall: getTodoList,
-    function: {
-      name: 'getTodoList',
-      description: 'Get the list of todos from my Notion database',
+    tool: {
+      type: 'function',
+      function: {
+        name: 'getTodoList',
+        description: 'Get the list of todos from my Notion database',
+      },
     },
   },
 };

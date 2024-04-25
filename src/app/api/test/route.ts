@@ -16,10 +16,7 @@ export async function POST(request: Request) {
     },
     { role: 'user', content: data.text },
   ];
-  const tools = Object.values(availableFunctions).map(({ spec }) => ({
-    type: 'function' as 'function',
-    function: spec,
-  }));
+  const tools = Object.values(availableFunctions).map(value => value.tool);
 
   try {
     const completion = await openai.chat.completions.create({
@@ -34,7 +31,7 @@ export async function POST(request: Request) {
     if (toolCalls) {
       for (const toolCall of toolCalls) {
         const functionName = toolCall.function.name;
-        const functionToCall = availableFunctions[functionName].function;
+        const functionToCall = availableFunctions[functionName].functionToCall;
         const functionArgs = JSON.parse(toolCall.function.arguments);
         const argsValues = Object.values(functionArgs)[0] as string;
 

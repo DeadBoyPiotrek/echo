@@ -29,21 +29,17 @@ export async function POST(request: Request) {
     messages = [
       {
         role: 'system',
-        content: `You're helpful, motivating and kind assistant, you give short straightforward audio only answers, like a human to human, time now: ${formattedDate}`,
+        content: `You're helpful, motivating and kind assistant, you give short straightforward answers that are going to be converted to speech and played, like a human to human, time now: ${formattedDate}`,
       },
       { role: 'user', content: text },
     ];
 
     //* completion
-    const tools = Object.values(availableFunctions).map(({ spec }) => ({
-      type: 'function' as 'function',
-      function: spec,
-    }));
-
+    const tools = Object.values(availableFunctions).map(value => value.tool);
     const completion = await openai.chat.completions.create({
       model,
       messages,
-      tools,
+      tools: tools,
     });
     const completionMessage = completion.choices[0].message;
     messages.push(completionMessage);
@@ -52,9 +48,9 @@ export async function POST(request: Request) {
     if (toolCalls) {
       for (const toolCall of toolCalls) {
         const functionName = toolCall.function.name;
-        const functionToCall = availableFunctions[functionName].function;
+        const functionToCall = availableFunctions[functionName].functionToCall;
         const functionArgs = JSON.parse(toolCall.function.arguments);
-        const argsValues = Object.values(functionArgs)[0] as string;
+        const argsValues = Object.values(functionArgs)[0];
 
         const functionResponse = await functionToCall(argsValues);
 
