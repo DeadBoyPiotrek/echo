@@ -91,16 +91,22 @@ const getTodoList = async () => {
       database_id: databaseId,
     });
 
-    const todos = database.results.map(result => {
-      //@ts-ignore
-      const { Name, Status, Date } = result.properties;
+    const todos = database.results.map(todo => {
       return {
-        name: Name.title[0].text.content,
-        status: Status ? Status.select.name : 'No Priority', // Handling undefined status
-        date: Date && Date.date ? Date.date.start : null,
+        name: todo.properties.Name.title[0].plain_text,
+        status: todo.properties.Status
+          ? todo.properties.Status.select?.name
+          : 'Not specified',
+        done: todo.properties.Done.checkbox,
+        date: todo.properties.Date
+          ? new Date(todo.properties.Date.date?.start).toLocaleDateString()
+          : 'Not specified',
+        url: todo.url,
       };
     });
-    return JSON.stringify(todos);
+    console.log(`🚀 ~ todos ~ todos:`, todos);
+
+    return todos;
   } catch (error) {
     console.error('Error:', error);
     return error;
@@ -134,7 +140,6 @@ const availableFunctions: AvailableFunctions = {
       type: 'function',
       function: {
         name: 'getDailySummary',
-
         description: 'Get the daily summary of my activities',
         parameters: {
           type: 'object',
@@ -187,6 +192,10 @@ const availableFunctions: AvailableFunctions = {
       function: {
         name: 'getTodoList',
         description: 'Get the list of todos from my Notion database',
+        // parameters: {
+        //   type: 'object',
+        //   properties: {},
+        // },
       },
     },
   },

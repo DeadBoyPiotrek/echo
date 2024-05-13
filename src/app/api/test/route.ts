@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   const messages: OpenAI.ChatCompletionMessageParam[] = [
     {
       role: 'system',
-      content: `You're helpful, motivating and kind assistant, you give short straightforward answers, time now: ${formattedDate} 
+      content: `You're helpful, motivating and kind assistant, you give short straightforward answers that are going to be converted to speech and played, like a human to human, time now: ${formattedDate}
     `,
     },
     { role: 'user', content: data.text },
