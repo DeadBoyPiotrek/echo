@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     messages = [
       {
         role: 'system',
-        content: `You're helpful, motivating and kind assistant, you give short straightforward answers that are going to be converted to speech and played, like a human to human, time now: ${formattedDate}`,
+        content: `You're helpful, motivating and kind assistant, you give very short straightforward answers that are going to be converted to speech and played, like a human to human, time now: ${formattedDate}`,
       },
       { role: 'user', content: text },
     ];
@@ -50,10 +50,8 @@ export async function POST(request: Request) {
         const functionName = toolCall.function.name;
         const functionToCall = availableFunctions[functionName].functionToCall;
         const functionArgs = JSON.parse(toolCall.function.arguments);
-        const argsValues = Object.values(functionArgs)[0];
-
-        const functionResponse = await functionToCall(argsValues);
-
+        const argsValues = Object.values(functionArgs) as string[];
+        const functionResponse = await functionToCall(...argsValues);
         messages.push({
           tool_call_id: toolCall.id,
           role: 'tool',

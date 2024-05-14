@@ -33,6 +33,7 @@ const addTodo: Function = async (
   priority: Priority
 ) => {
   console.log('Adding todo:', todoContent, date, priority);
+
   try {
     const notion = new Client({ auth: process.env.NOTION_API_KEY });
     const databaseId = process.env.NOTION_TODO_DATABASE_ID;
@@ -87,21 +88,28 @@ const getTodoList = async () => {
       throw new Error('Database ID is not set');
     }
 
-    const database = await notion.databases.query({
+    const database = (await notion.databases.query({
       database_id: databaseId,
-    });
+    })) as any;
 
+    //@ts-ignore
     const todos = database.results.map(todo => {
+      const name = todo.properties.Name.title[0].plain_text;
+      const status = todo.properties.Status
+        ? todo.properties.Status.select?.name || 'Not specified'
+        : 'Not specified';
+      const done = todo.properties.Done.checkbox;
+      const date = todo.properties.Date
+        ? new Date(todo.properties.Date.date?.start).toLocaleDateString()
+        : 'Not specified';
+      const url = todo.url;
+
       return {
-        name: todo.properties.Name.title[0].plain_text,
-        status: todo.properties.Status
-          ? todo.properties.Status.select?.name
-          : 'Not specified',
-        done: todo.properties.Done.checkbox,
-        date: todo.properties.Date
-          ? new Date(todo.properties.Date.date?.start).toLocaleDateString()
-          : 'Not specified',
-        url: todo.url,
+        name,
+        status,
+        done,
+        date,
+        // url,
       };
     });
     console.log(`🚀 ~ todos ~ todos:`, todos);
@@ -176,8 +184,14 @@ const availableFunctions: AvailableFunctions = {
             },
             priority: {
               type: 'string',
+              enum: [
+                'High Priority',
+                'Medium Priority',
+                'Low Priority',
+                'No Priority',
+              ],
               description:
-                'The priority of the todo must be exactly one of: High Priority, Medium Priority, Low Priority if not provided it will be set to No Priority',
+                'The priority of the todo. Must be exactly one of: High Priority, Medium Priority, Low Priority, or No Priority. If not provided it will be set to No Priority',
             },
           },
           required: ['todoContent', 'date', 'priority'],
@@ -191,11 +205,8 @@ const availableFunctions: AvailableFunctions = {
       type: 'function',
       function: {
         name: 'getTodoList',
-        description: 'Get the list of todos from my Notion database',
-        // parameters: {
-        //   type: 'object',
-        //   properties: {},
-        // },
+        description:
+          'Get the list of todos (tasks that i need to do) from my Notion database',
       },
     },
   },
