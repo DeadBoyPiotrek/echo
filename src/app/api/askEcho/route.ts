@@ -4,10 +4,24 @@ import { ChatCompletionCreateParamsBase } from 'openai/resources/chat/completion
 const key = process.env.OPENAI_API_KEY;
 const openai = new OpenAI({ apiKey: key });
 
+const maxMessages = 10;
+const model: ChatCompletionCreateParamsBase['model'] = 'gpt-4-turbo-preview';
+const formattedDate = new Date().toISOString();
+const messages: OpenAI.ChatCompletionMessageParam[] = [
+  {
+    role: 'system',
+    content: `You're helpful, motivating and kind assistant, you give very short straightforward answers that are going to be converted to speech and played, like a human to human, time now: ${formattedDate}
+  `,
+  },
+];
+const updateMessageStack = (newMessage: OpenAI.ChatCompletionMessageParam) => {
+  if (messages.length >= maxMessages) {
+    messages.splice(1, messages.length - 2);
+  }
+  messages.push(newMessage);
+};
+
 export async function POST(request: Request) {
-  let messages: OpenAI.ChatCompletionMessageParam[] = [];
-  const model: ChatCompletionCreateParamsBase['model'] = 'gpt-3.5-turbo';
-  const formattedDate = new Date().toISOString();
   try {
     const startTime = performance.now();
 
@@ -26,13 +40,7 @@ export async function POST(request: Request) {
       speechToTextTime - startTime,
       'milliseconds'
     );
-    messages = [
-      {
-        role: 'system',
-        content: `You're helpful, motivating and kind assistant, you give very short straightforward answers that are going to be converted to speech and played, like a human to human, time now: ${formattedDate}`,
-      },
-      { role: 'user', content: text },
-    ];
+    updateMessageStack({ role: 'user', content: text });
 
     //* completion
     const tools = Object.values(availableFunctions).map(value => value.tool);
@@ -42,7 +50,7 @@ export async function POST(request: Request) {
       tools: tools,
     });
     const completionMessage = completion.choices[0].message;
-    messages.push(completionMessage);
+    updateMessageStack(completionMessage);
 
     const toolCalls = completionMessage.tool_calls;
     if (toolCalls) {
@@ -52,7 +60,7 @@ export async function POST(request: Request) {
         const functionArgs = JSON.parse(toolCall.function.arguments);
         const argsValues = Object.values(functionArgs) as string[];
         const functionResponse = await functionToCall(...argsValues);
-        messages.push({
+        updateMessageStack({
           tool_call_id: toolCall.id,
           role: 'tool',
           content: JSON.stringify(functionResponse),
@@ -65,7 +73,7 @@ export async function POST(request: Request) {
 
       const secondCompletionMessage = secondCompletion.choices[0].message;
 
-      messages.push(secondCompletionMessage);
+      updateMessageStack(secondCompletionMessage);
     }
     const completionTime = performance.now();
     console.log(

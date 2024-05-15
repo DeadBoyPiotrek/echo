@@ -43,7 +43,7 @@ export default function Test() {
         >
           Submit
         </button>
-        <div className="text-white">{response}</div>
+        <pre className="text-white font-sans">{response}</pre>
       </form>
     </div>
   );

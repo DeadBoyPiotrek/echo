@@ -1,9 +1,11 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAwake } from '@hooks/useAwake';
 import { useRecorder } from '@hooks/useRecorder';
-
+import { PopoverMenu } from './components/popoverMenu';
+import { handleRecording, handleSilence } from '@lib/audio';
 export default function Home() {
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   const {
     startRecording,
     stopRecording,
@@ -12,47 +14,48 @@ export default function Home() {
     recordRef,
     loadAudio,
   } = useRecorder();
-  const { error, isListening, keywordDetection, start, stop } = useAwake();
+  const {
+    error,
+    isListening,
+    keywordDetection,
+    startListening,
+    stopListening,
+  } = useAwake();
 
+  //* Start recording when keyword is detected
   useEffect(() => {
-    console.log('keywordDetection:', keywordDetection);
     const handleEffect = async () => {
-      const mediaStream = await recordRef.current?.startMic();
+      const stream = await recordRef.current?.startMic();
       if (mediaStream && keywordDetection !== null) {
-        await startRecording();
-        handleSilence(mediaStream, stopRecording);
+        setMediaStream(stream);
+        handleRecording(startRecording, mediaStream, stopRecording);
       }
     };
 
     handleEffect();
   }, [keywordDetection]);
 
+  //* Set up recording event listener
   useEffect(() => {
     if (recordRef.current) {
-      recordRef.current.on('record-start', () => {
-        console.log('record-start');
-      });
-
       recordRef.current.on('record-end', async audioBlob => {
         const formData = new FormData();
         formData.append('blob', audioBlob, 'audio.wav');
         try {
-          const response = await fetch('/api/askEcho', {
-            method: 'POST',
-            body: formData,
-          });
-          const data = await response.json();
-          console.log(`🚀 ~ useEffect ~ data:`, data);
-          const echoResponseBlobBase64 = data.audioBlobBase64;
-          const echoResponseBlob = new Blob(
-            [Buffer.from(echoResponseBlobBase64, 'base64')],
-            {
-              type: 'audio/mpeg',
-            }
-          );
-          const echoResponseText = data.text;
-
-          loadAudio(echoResponseBlob);
+          // const response = await fetch('/api/askEcho', {
+          //   method: 'POST',
+          //   body: formData,
+          // });
+          // const data = await response.json();
+          // const echoResponseBlobBase64 = data.audioBlobBase64;
+          // const echoResponseBlob = new Blob(
+          //   [Buffer.from(echoResponseBlobBase64, 'base64')],
+          //   {
+          //     type: 'audio/mpeg',
+          //   }
+          // );
+          // const echoResponseText = data.text;
+          // loadAudio(echoResponseBlob);
         } catch (error) {
           console.error('error:', error);
         }
@@ -60,45 +63,8 @@ export default function Home() {
     }
   }, []);
 
-  const handleSilence = (
-    mediaStream: MediaStream,
-    stopRecording: () => void
-  ) => {
-    const audioContext = new AudioContext();
-    const analyser = audioContext.createAnalyser();
-    const audioStreamSource = audioContext.createMediaStreamSource(mediaStream);
-    audioStreamSource.connect(analyser);
-    const bufferLength = analyser.frequencyBinCount;
-    const domainData = new Uint8Array(bufferLength);
-    let timeout: NodeJS.Timeout | null = null;
-
-    const interval = setInterval(() => {
-      analyser.getByteFrequencyData(domainData);
-      let sum = 0;
-      for (let i = 0; i < bufferLength; i++) {
-        sum += domainData[i];
-      }
-      const average = sum / bufferLength;
-      console.log(average);
-      if (average < 10) {
-        if (!timeout) {
-          timeout = setTimeout(() => {
-            stopRecording();
-            clearInterval(interval);
-          }, 2000);
-        }
-      } else {
-        if (timeout) {
-          clearTimeout(timeout);
-          timeout = null;
-        }
-      }
-    }, 100);
-  };
-
   return (
-    <main className=" p-3 flex flex-col gap-3 items-center justify-center h-screen">
-      <h1 className="text-4xl">ECHO</h1>
+    <main className="p-3 flex flex-col gap-3 items-center justify-center h-screen">
       <div ref={waveformRef}></div>
       <p className="p-4 text-xl text-blue-400">
         {isRecording ? 'Recording...' : 'not recording'}
@@ -106,28 +72,39 @@ export default function Home() {
       <p className="p-4 text-xl text-blue-400">
         {isListening ? 'Listening...' : 'not listening'}
       </p>
-      <button className="border p-2 rounded-md" onClick={startRecording}>
-        Start Recording
-      </button>
+
+      {mediaStream ? (
+        <button
+          className="border p-2 rounded-md"
+          onClick={() =>
+            handleRecording(startRecording, mediaStream, stopRecording)
+          }
+        >
+          Start Recording
+        </button>
+      ) : null}
+
       <button className="border p-2 rounded-md" onClick={stopRecording}>
         Stop Recording
       </button>
 
       <button
         className="border p-2 rounded-md"
-        onClick={start}
+        onClick={startListening}
         disabled={isListening}
       >
         Start listening wake word
       </button>
       <button
         className="border p-2 rounded-md"
-        onClick={stop}
+        onClick={stopListening}
         disabled={!isListening}
       >
         Stop listening wake word
       </button>
       {error && <div>Error: {error.message}</div>}
+      <PopoverMenu />
+      {/* <h1 className="text-[300px] font-bold text-[#0c0b0b] absolute">ECHO</h1> */}
     </main>
   );
 }

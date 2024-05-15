@@ -23,8 +23,8 @@ export const useAwake = () => {
 
   return {
     isListening,
-    start,
-    stop,
+    startListening: start,
+    stopListening: stop,
     error,
     keywordDetection,
   };

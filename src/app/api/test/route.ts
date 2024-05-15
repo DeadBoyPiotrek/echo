@@ -4,6 +4,7 @@ import { ChatCompletionCreateParamsBase } from 'openai/resources/chat/completion
 const key = process.env.OPENAI_API_KEY;
 const openai = new OpenAI({ apiKey: key });
 
+const model: ChatCompletionCreateParamsBase['model'] = 'gpt-4-turbo-preview';
 const formattedDate = new Date().toISOString();
 const messages: OpenAI.ChatCompletionMessageParam[] = [
   {
@@ -21,7 +22,6 @@ const updateMessageStack = (newMessage: OpenAI.ChatCompletionMessageParam) => {
 };
 
 export async function POST(request: Request) {
-  const model: ChatCompletionCreateParamsBase['model'] = 'gpt-3.5-turbo';
   const data = await request.json();
 
   updateMessageStack({ role: 'user', content: data.text });
