@@ -1,11 +1,11 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useAwake } from '@hooks/useAwake';
 import { useRecorder } from '@hooks/useRecorder';
-import { PopoverMenu } from './components/popoverMenu';
-import { handleRecording, handleSilence } from '@lib/audio';
+import { handleRecording } from '@lib/audio';
+import { DropdownMenu } from '@/components/dropdownMenu';
+import { CheckIcon, Cross1Icon } from '@radix-ui/react-icons';
 export default function Home() {
-  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   const {
     startRecording,
     stopRecording,
@@ -26,9 +26,8 @@ export default function Home() {
   useEffect(() => {
     const handleEffect = async () => {
       const stream = await recordRef.current?.startMic();
-      if (mediaStream && keywordDetection !== null) {
-        setMediaStream(stream);
-        handleRecording(startRecording, mediaStream, stopRecording);
+      if (stream && keywordDetection !== null) {
+        handleRecording(startRecording, stream, stopRecording);
       }
     };
 
@@ -66,45 +65,59 @@ export default function Home() {
   return (
     <main className="p-3 flex flex-col gap-3 items-center justify-center h-screen">
       <div ref={waveformRef}></div>
-      <p className="p-4 text-xl text-blue-400">
-        {isRecording ? 'Recording...' : 'not recording'}
-      </p>
-      <p className="p-4 text-xl text-blue-400">
-        {isListening ? 'Listening...' : 'not listening'}
-      </p>
+      <DropdownMenu>
+        <div className="flex flex-col font-light">
+          <p className=" flex items-center gap-2  ">
+            Recording:
+            {isRecording ? <CheckIcon /> : <Cross1Icon className="w-5 h-5" />}
+          </p>
+          <p
+            className="
+           flex items-center gap-2
+          "
+          >
+            Listening:{' '}
+            {isListening ? <CheckIcon /> : <Cross1Icon className="w-5 h-5" />}
+          </p>
 
-      {mediaStream ? (
-        <button
-          className="border p-2 rounded-md"
-          onClick={() =>
-            handleRecording(startRecording, mediaStream, stopRecording)
-          }
-        >
-          Start Recording
-        </button>
-      ) : null}
+          {recordRef.current?.startMic ? (
+            <>
+              <button
+                className=""
+                onClick={async () => {
+                  const stream = await recordRef.current?.startMic();
+                  handleRecording(startRecording, stream, stopRecording);
+                }}
+              >
+                Start Recording
+              </button>
 
-      <button className="border p-2 rounded-md" onClick={stopRecording}>
-        Stop Recording
-      </button>
+              <button className="" onClick={stopRecording}>
+                Stop Recording
+              </button>
 
-      <button
-        className="border p-2 rounded-md"
-        onClick={startListening}
-        disabled={isListening}
-      >
-        Start listening wake word
-      </button>
-      <button
-        className="border p-2 rounded-md"
-        onClick={stopListening}
-        disabled={!isListening}
-      >
-        Stop listening wake word
-      </button>
-      {error && <div>Error: {error.message}</div>}
-      <PopoverMenu />
-      {/* <h1 className="text-[300px] font-bold text-[#0c0b0b] absolute">ECHO</h1> */}
+              <button
+                className=""
+                onClick={startListening}
+                disabled={isListening}
+              >
+                Start listening
+              </button>
+              <button
+                className=""
+                onClick={stopListening}
+                disabled={!isListening}
+              >
+                Stop listening
+              </button>
+              {error && <div>Error: {error.message}</div>}
+            </>
+          ) : (
+            <div>Microphone not available</div>
+          )}
+        </div>
+      </DropdownMenu>
+      <h1 className="text-[300px] font-bold text-echoGray absolute ">ECHO</h1>
     </main>
   );
 }

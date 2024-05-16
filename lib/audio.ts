@@ -9,6 +9,7 @@ export const handleSilence = (
   const bufferLength = analyser.frequencyBinCount;
   const domainData = new Uint8Array(bufferLength);
   let silenceTimeout: NodeJS.Timeout | null = null;
+  let silenceInterval: NodeJS.Timeout | null = null;
   let recordingTimeout: NodeJS.Timeout | null = null;
 
   const checkSilence = () => {
@@ -23,7 +24,7 @@ export const handleSilence = (
       if (!silenceTimeout) {
         silenceTimeout = setTimeout(() => {
           stopRecording();
-          clearInterval(recordingTimeout!);
+          clearInterval(silenceInterval!);
         }, 2000);
       }
     } else {
@@ -37,9 +38,11 @@ export const handleSilence = (
   recordingTimeout = setTimeout(() => {
     stopRecording();
     clearInterval(silenceTimeout!);
+    clearInterval(recordingTimeout!);
+    clearInterval(silenceInterval!);
   }, 10000);
 
-  setInterval(checkSilence, 100);
+  silenceInterval = setInterval(checkSilence, 100);
 };
 
 export const handleRecording = (

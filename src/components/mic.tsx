@@ -1,4 +1,4 @@
-import useMicrophone from '../../../hooks/useMicrophone';
+import useMicrophone from '../../hooks/useMicrophone';
 
 const Mic: React.FC = () => {
   const { status, startRecording, stopRecording, audioBlob } = useMicrophone();
