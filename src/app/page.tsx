@@ -1,18 +1,30 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAwake } from '@hooks/useAwake';
 import { useRecorder } from '@hooks/useRecorder';
 import { handleRecording } from '@lib/audio';
-import { DropdownMenu } from '@/components/dropdownMenu';
+import { DropdownMenu, DropdownMenuItem } from '@/components/dropdownMenu';
 import { CheckIcon, Cross1Icon } from '@radix-ui/react-icons';
+import type OpenAI from 'openai';
 export default function Home() {
+  const [messages, setMessages] = useState<
+    | {
+        role: string;
+        content: string;
+      }[]
+    | null
+  >(null);
+
+  console.log(`🚀 ~ Home ~ messages:`, messages);
   const {
     startRecording,
     stopRecording,
     isRecording,
     waveformRef,
     recordRef,
-    loadAudio,
+    loadAudioBlob,
+    playAudio,
+    isAudioLoaded,
   } = useRecorder();
   const {
     error,
@@ -41,20 +53,26 @@ export default function Home() {
         const formData = new FormData();
         formData.append('blob', audioBlob, 'audio.wav');
         try {
-          // const response = await fetch('/api/askEcho', {
-          //   method: 'POST',
-          //   body: formData,
-          // });
-          // const data = await response.json();
-          // const echoResponseBlobBase64 = data.audioBlobBase64;
-          // const echoResponseBlob = new Blob(
-          //   [Buffer.from(echoResponseBlobBase64, 'base64')],
-          //   {
-          //     type: 'audio/mpeg',
-          //   }
+          const response = await fetch('/api/askEcho', {
+            method: 'POST',
+            body: formData,
+          });
+          const data = await response.json();
+          console.log('data:', data);
+          // setMessages(
+          //   messages
+          //     ? [...messages, data.filteredMessages]
+          //     : [data.filteredMessages]
           // );
-          // const echoResponseText = data.text;
-          // loadAudio(echoResponseBlob);
+          setMessages(data.filteredMessages);
+          const echoResponseBlobBase64 = data.audioBlobBase64;
+          const echoResponseBlob = new Blob(
+            [Buffer.from(echoResponseBlobBase64, 'base64')],
+            {
+              type: 'audio/mpeg',
+            }
+          );
+          loadAudioBlob(echoResponseBlob);
         } catch (error) {
           console.error('error:', error);
         }
@@ -63,61 +81,118 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="p-3 flex flex-col gap-3 items-center justify-center h-screen">
-      <div ref={waveformRef}></div>
-      <DropdownMenu>
-        <div className="flex flex-col font-light">
-          <p className=" flex items-center gap-2  ">
-            Recording:
-            {isRecording ? <CheckIcon /> : <Cross1Icon className="w-5 h-5" />}
-          </p>
-          <p
-            className="
-           flex items-center gap-2
-          "
-          >
-            Listening:{' '}
-            {isListening ? <CheckIcon /> : <Cross1Icon className="w-5 h-5" />}
-          </p>
+    <main className="flex flex-col items-center">
+      <div className="p-3 flex flex-col gap-3 items-center justify-center h-screen">
+        <div ref={waveformRef}></div>
+        <DropdownMenu>
+          <div className="flex flex-col font-light">
+            <p className=" flex items-center gap-2  ">
+              Recording:
+              {isRecording ? (
+                <CheckIcon className="w-6 h-6" />
+              ) : (
+                <Cross1Icon className="w-5 h-5" />
+              )}
+            </p>
+            <p
+              className="
+            flex items-center gap-2
+            "
+            >
+              Listening:{' '}
+              {isListening ? (
+                <CheckIcon className="w-6 h-6" />
+              ) : (
+                <Cross1Icon className="w-5 h-5" />
+              )}
+            </p>
 
-          {recordRef.current?.startMic ? (
-            <>
-              <button
-                className=""
-                onClick={async () => {
-                  const stream = await recordRef.current?.startMic();
-                  handleRecording(startRecording, stream, stopRecording);
-                }}
-              >
-                Start Recording
-              </button>
+            <div className="h-[1px] w-full bg-white my-1"></div>
 
-              <button className="" onClick={stopRecording}>
-                Stop Recording
-              </button>
-
-              <button
-                className=""
-                onClick={startListening}
-                disabled={isListening}
-              >
-                Start listening
-              </button>
-              <button
-                className=""
-                onClick={stopListening}
-                disabled={!isListening}
-              >
-                Stop listening
-              </button>
-              {error && <div>Error: {error.message}</div>}
-            </>
-          ) : (
-            <div>Microphone not available</div>
-          )}
-        </div>
-      </DropdownMenu>
-      <h1 className="text-[300px] font-bold text-echoGray absolute ">ECHO</h1>
+            {recordRef.current?.startMic ? (
+              <>
+                <DropdownMenuItem
+                  asChild
+                  className={`${
+                    isRecording ? 'text-gray-400' : ''
+                  } outline-none data-[highlighted]:underline`}
+                >
+                  <button
+                    onClick={async () => {
+                      const stream = await recordRef.current?.startMic();
+                      // @ts-ignore
+                      //TODO: Fix this
+                      handleRecording(startRecording, stream, stopRecording);
+                    }}
+                    disabled={isRecording}
+                  >
+                    Start Recording
+                  </button>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  asChild
+                  className={`${
+                    !isRecording ? 'text-gray-400' : ''
+                  } outline-none data-[highlighted]:underline`}
+                >
+                  <button onClick={stopRecording} disabled={!isRecording}>
+                    Stop Recording
+                  </button>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  asChild
+                  className={`${
+                    isListening ? 'text-gray-400' : ''
+                  } outline-none data-[highlighted]:underline text-left`}
+                >
+                  <button onClick={startListening} disabled={isListening}>
+                    Start listening
+                  </button>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  asChild
+                  className={`${
+                    !isListening ? 'text-gray-400' : ''
+                  } outline-none data-[highlighted]:underline text-left`}
+                >
+                  <button onClick={stopListening} disabled={!isListening}>
+                    Stop listening
+                  </button>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  asChild
+                  className={`${
+                    !isAudioLoaded ? 'text-gray-400' : ''
+                  } outline-none data-[highlighted]:underline text-left`}
+                >
+                  <button onClick={playAudio} disabled={!isAudioLoaded}>
+                    Play audio
+                  </button>
+                </DropdownMenuItem>
+                <p>{error && <div>Error: {error.message}</div>}</p>
+              </>
+            ) : (
+              <div>Microphone not available</div>
+            )}
+          </div>
+        </DropdownMenu>
+        <h1 className="text-[300px] font-bold text-echoGray absolute select-none">
+          ECHO
+        </h1>
+      </div>
+      <div className="w-[1000px] flex flex-col ">
+        {messages &&
+          messages.map((message, index) => (
+            <div
+              key={index}
+              className={`p-3 my-2 rounded-lg ${
+                message.role === 'user' ? 'self-end' : 'self-start'
+              }`}
+            >
+              {message.content}
+            </div>
+          ))}
+      </div>
     </main>
   );
 }

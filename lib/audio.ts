@@ -25,6 +25,7 @@ export const handleSilence = (
         silenceTimeout = setTimeout(() => {
           stopRecording();
           clearInterval(silenceInterval!);
+          clearInterval(recordingTimeout!);
         }, 2000);
       }
     } else {

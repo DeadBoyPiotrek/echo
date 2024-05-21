@@ -5,7 +5,7 @@ const key = process.env.OPENAI_API_KEY;
 const openai = new OpenAI({ apiKey: key });
 
 const maxMessages = 10;
-const model: ChatCompletionCreateParamsBase['model'] = 'gpt-4-turbo-preview';
+const model: ChatCompletionCreateParamsBase['model'] = 'gpt-3.5-turbo';
 const formattedDate = new Date().toISOString();
 const messages: OpenAI.ChatCompletionMessageParam[] = [
   {
@@ -14,6 +14,7 @@ const messages: OpenAI.ChatCompletionMessageParam[] = [
   `,
   },
 ];
+
 const updateMessageStack = (newMessage: OpenAI.ChatCompletionMessageParam) => {
   if (messages.length >= maxMessages) {
     messages.splice(1, messages.length - 2);
@@ -108,8 +109,11 @@ export async function POST(request: Request) {
     console.log('Total time:', endTime - startTime, 'milliseconds');
 
     console.log('messages', JSON.stringify(messages, null, 2));
+    const filteredMessages = messages.filter(
+      message => message.role == 'user' || message.role == 'assistant'
+    );
     return new Response(
-      JSON.stringify({ message: chatResponse, audioBlobBase64: blobBase64 }),
+      JSON.stringify({ filteredMessages, audioBlobBase64: blobBase64 }),
       {
         headers: { 'Content-Type': 'application/json' },
       }

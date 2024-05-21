@@ -7,3 +7,8 @@ body {
   background-color: #09070a;
   color: #fff;
 }
+
+/* hide scrollbar */
+body::-webkit-scrollbar {
+  display: none;
+}
