@@ -9,12 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        echoGray: '#0c0b0b',
-      },
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic':
-          'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+        echoGray: '#0f0e0e',
       },
     },
   },

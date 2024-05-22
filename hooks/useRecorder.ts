@@ -30,11 +30,17 @@ export const useRecorder = () => {
         );
 
         recordRef.current.on('record-start', () => {
-          if (audioOn) audioOn.play();
+          if (audioOn) {
+            audioOn.volume = 0.1;
+            audioOn?.play();
+          }
         });
 
         recordRef.current.on('record-end', () => {
-          if (audioOff) audioOff.play();
+          if (audioOff) {
+            audioOff.volume = 0.1;
+            audioOff?.play();
+          }
         });
       }
     };

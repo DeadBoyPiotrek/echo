@@ -5,7 +5,7 @@ import { useRecorder } from '@hooks/useRecorder';
 import { handleRecording } from '@lib/audio';
 import { DropdownMenu, DropdownMenuItem } from '@/components/dropdownMenu';
 import { CheckIcon, Cross1Icon } from '@radix-ui/react-icons';
-import type OpenAI from 'openai';
+
 export default function Home() {
   const [messages, setMessages] = useState<
     | {
@@ -180,17 +180,17 @@ export default function Home() {
           ECHO
         </h1>
       </div>
-      <div className="w-[1000px] flex flex-col ">
+      <div className="w-[1000px] flex flex-col gap-3">
         {messages &&
           messages.map((message, index) => (
-            <div
+            <pre
               key={index}
-              className={`p-3 my-2 rounded-lg ${
+              className={`__className_229379 text-wrap p-3 rounded-lg ${
                 message.role === 'user' ? 'self-end' : 'self-start'
-              }`}
+              } `}
             >
-              {message.content}
-            </div>
+              - {message.content}
+            </pre>
           ))}
       </div>
     </main>

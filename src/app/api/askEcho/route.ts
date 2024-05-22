@@ -4,7 +4,7 @@ import { ChatCompletionCreateParamsBase } from 'openai/resources/chat/completion
 const key = process.env.OPENAI_API_KEY;
 const openai = new OpenAI({ apiKey: key });
 
-const maxMessages = 10;
+const maxMessages = 30;
 const model: ChatCompletionCreateParamsBase['model'] = 'gpt-3.5-turbo';
 const formattedDate = new Date().toISOString();
 const messages: OpenAI.ChatCompletionMessageParam[] = [
@@ -17,7 +17,11 @@ const messages: OpenAI.ChatCompletionMessageParam[] = [
 
 const updateMessageStack = (newMessage: OpenAI.ChatCompletionMessageParam) => {
   if (messages.length >= maxMessages) {
-    messages.splice(1, messages.length - 2);
+    if (messages[1].role === 'tool') {
+      messages.splice(1, 2);
+    } else {
+      messages.splice(1, 1);
+    }
   }
   messages.push(newMessage);
 };
@@ -110,7 +114,9 @@ export async function POST(request: Request) {
 
     console.log('messages', JSON.stringify(messages, null, 2));
     const filteredMessages = messages.filter(
-      message => message.role == 'user' || message.role == 'assistant'
+      message =>
+        message.role == 'user' ||
+        (message.role == 'assistant' && message.content !== null)
     );
     return new Response(
       JSON.stringify({ filteredMessages, audioBlobBase64: blobBase64 }),
