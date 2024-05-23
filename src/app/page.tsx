@@ -15,7 +15,6 @@ export default function Home() {
     | null
   >(null);
 
-  console.log(`🚀 ~ Home ~ messages:`, messages);
   const {
     startRecording,
     stopRecording,
@@ -58,12 +57,6 @@ export default function Home() {
             body: formData,
           });
           const data = await response.json();
-          console.log('data:', data);
-          // setMessages(
-          //   messages
-          //     ? [...messages, data.filteredMessages]
-          //     : [data.filteredMessages]
-          // );
           setMessages(data.filteredMessages);
           const echoResponseBlobBase64 = data.audioBlobBase64;
           const echoResponseBlob = new Blob(
@@ -120,8 +113,6 @@ export default function Home() {
                   <button
                     onClick={async () => {
                       const stream = await recordRef.current?.startMic();
-                      // @ts-ignore
-                      //TODO: Fix this
                       handleRecording(startRecording, stream, stopRecording);
                     }}
                     disabled={isRecording}

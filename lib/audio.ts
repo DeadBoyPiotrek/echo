@@ -19,7 +19,6 @@ export const handleSilence = (
       sum += domainData[i];
     }
     const average = sum / bufferLength;
-    console.log(average);
     if (average < 10) {
       if (!silenceTimeout) {
         silenceTimeout = setTimeout(() => {

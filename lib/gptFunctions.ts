@@ -32,8 +32,6 @@ const addTodo: Function = async (
   date: string,
   priority: Priority
 ) => {
-  console.log('Adding todo:', todoContent, date, priority);
-
   try {
     const notion = new Client({ auth: process.env.NOTION_API_KEY });
     const databaseId = process.env.NOTION_TODO_DATABASE_ID;
@@ -71,7 +69,6 @@ const addTodo: Function = async (
       },
     });
 
-    console.log(JSON.stringify(response, null, 2));
     return 'Todo added successfully!';
   } catch (error) {
     console.error('Error adding todo: ', error);
@@ -112,7 +109,6 @@ const getTodoList = async () => {
         // url,
       };
     });
-    console.log(`🚀 ~ todos ~ todos:`, todos);
 
     return todos;
   } catch (error) {

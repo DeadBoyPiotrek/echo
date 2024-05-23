@@ -61,7 +61,6 @@ export const useRecorder = () => {
 
   const stopRecording = () => {
     if (recordRef.current === null) return;
-
     recordRef.current.stopRecording();
     setIsRecording(false);
   };
